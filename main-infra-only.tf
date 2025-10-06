@@ -209,36 +209,15 @@ resource "aws_eks_cluster" "main" {
   ]
 }
 
-# EKS Add-ons
-resource "aws_eks_addon" "vpc_cni" {
-  cluster_name             = aws_eks_cluster.main.name
-  addon_name               = "vpc-cni"
-  addon_version            = "v1.19.1-eksbuild.1"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn = aws_iam_role.vpc_cni_role.arn
-
-  depends_on = [aws_eks_cluster.main]
+# OIDC Provider for service accounts
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }
 
-resource "aws_eks_addon" "coredns" {
-  cluster_name      = aws_eks_cluster.main.name
-  addon_name        = "coredns"
-  addon_version     = "v1.11.3-eksbuild.2"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-resource "aws_eks_addon" "kube_proxy" {
-  cluster_name      = aws_eks_cluster.main.name
-  addon_name        = "kube-proxy"
-  addon_version     = "v1.33.5-eksbuild.3"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  depends_on = [aws_eks_cluster.main]
+resource "aws_iam_openid_connect_provider" "eks" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+  url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }
 
 # IAM Role for VPC CNI
@@ -270,15 +249,36 @@ resource "aws_iam_role_policy_attachment" "vpc_cni_policy" {
   role       = aws_iam_role.vpc_cni_role.name
 }
 
-# OIDC Provider for service accounts
-data "tls_certificate" "eks" {
-  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
+# EKS Add-ons
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name             = aws_eks_cluster.main.name
+  addon_name               = "vpc-cni"
+  addon_version            = "v1.19.1-eksbuild.1"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+  service_account_role_arn = aws_iam_role.vpc_cni_role.arn
+
+  depends_on = [aws_eks_cluster.main]
 }
 
-resource "aws_iam_openid_connect_provider" "eks" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
-  url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
+resource "aws_eks_addon" "coredns" {
+  cluster_name      = aws_eks_cluster.main.name
+  addon_name        = "coredns"
+  addon_version     = "v1.11.3-eksbuild.2"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [aws_eks_node_group.main]
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name      = aws_eks_cluster.main.name
+  addon_name        = "kube-proxy"
+  addon_version     = "v1.33.5-eksbuild.3"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [aws_eks_cluster.main]
 }
 
 # EKS Node Group
@@ -318,8 +318,7 @@ resource "aws_ecr_repository" "pedidos_api" {
   }
 }
 
-
-# RDS Subnet Group DELETE
+# RDS Subnet Group
 resource "aws_db_subnet_group" "main" {
   name       = "${var.cluster_name}-db-subnet-group"
   subnet_ids = aws_subnet.public[*].id
@@ -387,288 +386,4 @@ resource "aws_db_instance" "postgres-v2" {
   tags = {
     Name = "${var.cluster_name}-postgres"
   }
-}
-
-# ConfigMap
-resource "kubernetes_config_map" "pedidos_config" {
-  metadata {
-    name      = "pedidos-config"
-    namespace = kubernetes_namespace.pedidos.metadata[0].name
-  }
-  data = {
-    DB_TYPE = "postgres"
-    APP_ENV = "dev"
-    GIN_MODE= "release"
-
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# Namespace
-resource "kubernetes_namespace" "pedidos" {
-  metadata {
-    name = "pedidos"
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# Secret
-resource "kubernetes_secret" "pedidos_secret" {
-  metadata {
-    name      = "pedidos-secret"
-    namespace = kubernetes_namespace.pedidos.metadata[0].name
-  }
-  data = {
-    DATABASE_URL = base64encode("postgresql://fiap_arch:fiap_arch@${aws_db_instance.postgres-v2.endpoint}/${aws_db_instance.postgres-v2.db_name}")
-  }
-  type = "Opaque"
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# Deployment
-resource "kubernetes_deployment" "pedidos_api" {
-  metadata {
-    name      = "pedidos-api"
-    namespace = kubernetes_namespace.pedidos.metadata[0].name
-    labels    = { app = "pedidos-api" }
-  }
-
-  spec {
-    replicas = 1
-
-    selector { match_labels = { app = "pedidos-api" } }
-
-    template {
-      metadata {
-        labels = { app = "pedidos-api" }
-      }
-
-      spec {
-        container {
-          name  = "pedidos-api"
-          image = "${aws_ecr_repository.pedidos_api.repository_url}:${var.image_tag}"
-
-          port { container_port = 8081 }
-
-          env_from {
-            config_map_ref { name = kubernetes_config_map.pedidos_config.metadata[0].name }
-          }
-          env_from {
-            secret_ref { name = kubernetes_secret.pedidos_secret.metadata[0].name }
-          }
-
-          resources {
-            requests = {
-              cpu    = "100m"
-              memory = "128Mi"
-            }
-            limits = {
-              cpu    = "250m"
-              memory = "256Mi"
-            }
-          }
-
-          liveness_probe {
-            http_get {
-                path = "/healthz"
-                port = 8081
-                }
-            initial_delay_seconds = 30
-            period_seconds        = 10
-            timeout_seconds       = 5
-            failure_threshold     = 3
-          }
-          readiness_probe {
-            http_get {
-              path = "/readyz"
-              port = 8081
-            }
-            initial_delay_seconds = 5
-            period_seconds        = 10
-            timeout_seconds       = 5
-            failure_threshold     = 3
-          }
-        }
-      }
-    }
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# Service
-resource "kubernetes_service" "pedidos_service" {
-  metadata {
-    name      = "pedidos-api"
-    namespace = kubernetes_namespace.pedidos.metadata[0].name
-  }
-  spec {
-    selector = { app = kubernetes_deployment.pedidos_api.metadata[0].labels.app }
-    type     = "LoadBalancer"
-    port {
-      port        = 80
-      target_port = 8081
-      protocol    = "TCP"
-    }
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# Metrics Server
-resource "kubernetes_deployment" "metrics_server" {
-  metadata {
-    name      = "metrics-server"
-    namespace = "kube-system"
-    labels = {
-      k8s-app = "metrics-server"
-    }
-  }
-
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        k8s-app = "metrics-server"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          k8s-app = "metrics-server"
-        }
-      }
-
-      spec {
-        service_account_name = kubernetes_service_account.metrics_server.metadata[0].name
-
-        container {
-          name  = "metrics-server"
-          image = "registry.k8s.io/metrics-server/metrics-server:v0.7.2"
-
-          args = [
-            "--cert-dir=/tmp",
-            "--secure-port=10250",
-            "--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
-            "--kubelet-use-node-status-port",
-            "--metric-resolution=15s"
-          ]
-
-          port {
-            name           = "https"
-            container_port = 10250
-            protocol       = "TCP"
-          }
-
-          resources {
-            requests = {
-              cpu    = "100m"
-              memory = "200Mi"
-            }
-          }
-
-          volume_mount {
-            name       = "tmp-dir"
-            mount_path = "/tmp"
-          }
-
-          security_context {
-            allow_privilege_escalation = false
-            capabilities {
-              drop = ["ALL"]
-            }
-            read_only_root_filesystem = true
-            run_as_non_root = true
-            run_as_user = 1000
-            seccomp_profile {
-              type = "RuntimeDefault"
-            }
-          }
-        }
-
-        volume {
-          name = "tmp-dir"
-          empty_dir {}
-        }
-
-        priority_class_name = "system-cluster-critical"
-      }
-    }
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-resource "kubernetes_service_account" "metrics_server" {
-  metadata {
-    name      = "metrics-server"
-    namespace = "kube-system"
-    labels = {
-      k8s-app = "metrics-server"
-    }
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-resource "kubernetes_service" "metrics_server" {
-  metadata {
-    name      = "metrics-server"
-    namespace = "kube-system"
-    labels = {
-      k8s-app = "metrics-server"
-    }
-  }
-
-  spec {
-    selector = {
-      k8s-app = "metrics-server"
-    }
-
-    port {
-      name        = "https"
-      port        = 443
-      protocol    = "TCP"
-      target_port = "https"
-    }
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
-
-# HPA (v2)
-resource "kubernetes_horizontal_pod_autoscaler_v2" "pedidos_hpa" {
-  metadata {
-    name      = "pedidos-api-hpa"
-    namespace = kubernetes_namespace.pedidos.metadata[0].name
-  }
-  spec {
-    min_replicas = 1
-    max_replicas = 2
-    scale_target_ref {
-      api_version = "apps/v1"
-      kind        = "Deployment"
-      name        = kubernetes_deployment.pedidos_api.metadata[0].name
-    }
-    metric {
-      type = "Resource"
-      resource {
-        name = "cpu"
-        target {
-          type               = "Utilization"
-          average_utilization = 80
-        }
-      }
-    }
-  }
-
-  depends_on = [
-    aws_eks_node_group.main,
-    kubernetes_deployment.metrics_server
-  ]
 }
