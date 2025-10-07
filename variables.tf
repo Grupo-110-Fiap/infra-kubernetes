@@ -41,6 +41,8 @@ variable "database_url" {
   default     = ""
 }
 
+
+
 # VPC Configuration
 variable "vpc_cidr" {
   description = "CIDR block for VPC"

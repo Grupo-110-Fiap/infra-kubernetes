@@ -61,28 +61,7 @@ output "ecr_repository_arn" {
   value       = aws_ecr_repository.pedidos_api.arn
 }
 
-# RDS Outputs
-output "rds_hostname" {
-  description = "RDS instance hostname"
-  value       = aws_db_instance.postgres-v2.address
-  sensitive   = true
-}
 
-output "rds_port" {
-  description = "RDS instance port"
-  value       = aws_db_instance.postgres-v2.port
-}
-
-output "rds_username" {
-  description = "RDS instance root username"
-  value       = aws_db_instance.postgres-v2.username
-  sensitive   = true
-}
-
-output "database_name" {
-  description = "Database name"
-  value       = aws_db_instance.postgres-v2.db_name
-}
 
 # VPC Outputs
 output "vpc_id" {
@@ -98,6 +77,11 @@ output "private_subnets" {
 output "public_subnets" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.public[*].id
+}
+
+output "vpc_cidr" {
+  description = "CIDR block of the VPC"
+  value       = aws_vpc.main.cidr_block
 }
 
 # Load Balancer Output
