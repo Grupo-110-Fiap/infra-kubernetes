@@ -324,7 +324,8 @@ resource "kubernetes_config_map" "pedidos_config" {
   }
   data = {
     DB_TYPE = "postgres"
-    APP_ENV = var.environment
+    APP_ENV = "dev"
+    GIN_MODE = "release"
   }
 
   depends_on = [aws_eks_node_group.main]
@@ -399,20 +400,20 @@ resource "kubernetes_deployment" "pedidos_api" {
           liveness_probe {
             http_get {
                 path = "/healthz"
-                port = 8080
+                port = 8081
                 }
             initial_delay_seconds = 30
-            period_seconds        = 10
+            period_seconds        = 10000
             timeout_seconds       = 5
             failure_threshold     = 3
           }
           readiness_probe {
             http_get {
               path = "/readyz"
-              port = 8080
+              port = 8081
             }
             initial_delay_seconds = 5
-            period_seconds        = 10
+            period_seconds        = 10000
             timeout_seconds       = 5
             failure_threshold     = 3
           }
