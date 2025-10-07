@@ -1,7 +1,4 @@
-output "service_url" {
-  description = "Endpoint local da API"
-  value       = "http://localhost:8081"
-}
+
 
 # EKS Cluster Outputs
 output "cluster_id" {
@@ -84,9 +81,4 @@ output "vpc_cidr" {
   value       = aws_vpc.main.cidr_block
 }
 
-# Load Balancer Output
-output "load_balancer_hostname" {
-  description = "Load balancer hostname"
-  value       = kubernetes_service.pedidos_service.status.0.load_balancer.0.ingress.0.hostname
-  depends_on  = [kubernetes_service.pedidos_service]
-}
+

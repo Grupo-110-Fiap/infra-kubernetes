@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pedidos-api
+  namespace: pedidos
+  labels:
+    app: pedidos-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pedidos-api
+  template:
+    metadata:
+      labels:
+        app: pedidos-api
+    spec:
+      containers:
+      - name: pedidos-api
+        image: <ECR_REPOSITORY_URL>:<IMAGE_TAG>  # Substitua pela URL do ECR e tag da imagem
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: pedidos-config
+        - secretRef:
+            name: pedidos-secret
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 5

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pedidos-config
+  namespace: pedidos
+data:
+  DB_TYPE: "postgres"
+  APP_ENV: "dev"
+  PORT: "8080"

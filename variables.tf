@@ -21,28 +21,6 @@ variable "terraform_state_bucket" {
   type        = string
 }
 
-# Application Configuration
-variable "image" {
-  description = "Docker image da API"
-  type        = string
-  default     = "techchallengegestorpedidos-server-back:latest"
-}
-
-variable "image_tag" {
-  description = "Docker image tag"
-  type        = string
-  default     = "latest"
-}
-
-variable "database_url" {
-  description = "Connection string do banco"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-
-
 # VPC Configuration
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
