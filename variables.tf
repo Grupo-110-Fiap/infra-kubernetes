@@ -34,3 +34,19 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b"]
 }
+
+
+
+# Legacy variables (for backward compatibility - can be removed once tfvars are cleaned up)
+variable "db_password" {
+  description = "Database password (legacy - will be removed)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "lambda_s3_key" {
+  description = "Lambda S3 key (legacy - will be removed)"
+  type        = string
+  default     = ""
+}

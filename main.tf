@@ -254,3 +254,5 @@ resource "aws_ecr_repository" "pedidos_api" {
   }
 }
 
+
+
