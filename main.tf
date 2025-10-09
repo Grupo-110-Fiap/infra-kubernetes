@@ -1,50 +1,5 @@
 # Data sources
 data "aws_caller_identity" "current" {}
-
-# Data source para buscar informações do RDS criado no projeto infra-db
-data "aws_db_instance" "postgres" {
-  db_instance_identifier = "${var.cluster_name}-postgres"
-}
-
-# Data source para buscar a VPC do banco de dados
-data "aws_vpc" "db_vpc" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.cluster_name}-db-vpc"]
-  }
-}
-
-# VPC Peering Connection para conectar EKS VPC com DB VPC
-resource "aws_vpc_peering_connection" "eks_to_db" {
-  vpc_id      = aws_vpc.main.id
-  peer_vpc_id = data.aws_vpc.db_vpc.id
-  auto_accept = true
-
-  tags = {
-    Name = "${var.cluster_name}-eks-to-db-peering"
-  }
-}
-
-# Route para VPC Peering na route table pública do EKS
-resource "aws_route" "eks_public_to_db" {
-  route_table_id            = aws_route_table.public.id
-  destination_cidr_block    = data.aws_vpc.db_vpc.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.eks_to_db.id
-  
-  depends_on = [aws_vpc_peering_connection.eks_to_db]
-}
-
-# Route para VPC Peering nas route tables privadas do EKS
-resource "aws_route" "eks_private_to_db" {
-  count = length(var.availability_zones)
-
-  route_table_id            = aws_route_table.private[count.index].id
-  destination_cidr_block    = data.aws_vpc.db_vpc.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.eks_to_db.id
-  
-  depends_on = [aws_vpc_peering_connection.eks_to_db]
-}
-
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
