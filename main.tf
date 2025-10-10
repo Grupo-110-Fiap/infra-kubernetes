@@ -244,14 +244,9 @@ resource "aws_eks_node_group" "main" {
   ]
 }
 
-# ECR Repository
-resource "aws_ecr_repository" "pedidos_api" {
-  name                 = "techchallenge/pedidos-api"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+# ECR Repository (using existing repository)
+data "aws_ecr_repository" "pedidos_api" {
+  name = "techchallenge/pedidos-api"
 }
 
 
