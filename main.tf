@@ -249,5 +249,19 @@ data "aws_ecr_repository" "pedidos_api" {
   name = "techchallenge/pedidos-api"
 }
 
+# Kubernetes Namespace
+resource "kubernetes_namespace" "pedidos" {
+  metadata {
+    name = "pedidos"
+    
+    labels = {
+      name        = "pedidos"
+      environment = var.environment
+    }
+  }
+
+  depends_on = [aws_eks_node_group.main]
+}
+
 
 
