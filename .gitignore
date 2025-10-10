@@ -35,3 +35,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Kubernetes manifests backup (not used in this infrastructure project)
+k8s-manifests.bak/

@@ -19,27 +19,7 @@ variable "cluster_name" {
 variable "terraform_state_bucket" {
   description = "S3 bucket for Terraform state"
   type        = string
-  default = "terraform-kajgfkafvbajbfkagfskahgdfiahfkds"
-}
-
-# Application Configuration
-variable "image" {
-  description = "Docker image da API"
-  type        = string
-  default     = "techchallengegestorpedidos-server-back:latest"
-}
-
-variable "image_tag" {
-  description = "Docker image tag"
-  type        = string
-  default     = "latest"
-}
-
-variable "database_url" {
-  description = "Connection string do banco"
-  type        = string
-  sensitive   = true
-  default     = ""
+  default = "terraform-kajgfkafvbajbfkagfskahgdfiahfkds-EKS"
 }
 
 # VPC Configuration
@@ -53,4 +33,20 @@ variable "availability_zones" {
   description = "Availability zones"
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b"]
+}
+
+
+
+# Legacy variables (for backward compatibility - can be removed once tfvars are cleaned up)
+variable "db_password" {
+  description = "Database password (legacy - will be removed)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "lambda_s3_key" {
+  description = "Lambda S3 key (legacy - will be removed)"
+  type        = string
+  default     = ""
 }

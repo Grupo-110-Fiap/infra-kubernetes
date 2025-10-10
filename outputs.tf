@@ -1,7 +1,4 @@
-output "service_url" {
-  description = "Endpoint local da API"
-  value       = "http://localhost:8081"
-}
+
 
 # EKS Cluster Outputs
 output "cluster_id" {
@@ -61,28 +58,7 @@ output "ecr_repository_arn" {
   value       = aws_ecr_repository.pedidos_api.arn
 }
 
-# RDS Outputs
-output "rds_hostname" {
-  description = "RDS instance hostname"
-  value       = aws_db_instance.postgres-v2.address
-  sensitive   = true
-}
 
-output "rds_port" {
-  description = "RDS instance port"
-  value       = aws_db_instance.postgres-v2.port
-}
-
-output "rds_username" {
-  description = "RDS instance root username"
-  value       = aws_db_instance.postgres-v2.username
-  sensitive   = true
-}
-
-output "database_name" {
-  description = "Database name"
-  value       = aws_db_instance.postgres-v2.db_name
-}
 
 # VPC Outputs
 output "vpc_id" {
@@ -100,9 +76,9 @@ output "public_subnets" {
   value       = aws_subnet.public[*].id
 }
 
-# Load Balancer Output
-output "load_balancer_hostname" {
-  description = "Load balancer hostname"
-  value       = kubernetes_service.pedidos_service.status.0.load_balancer.0.ingress.0.hostname
-  depends_on  = [kubernetes_service.pedidos_service]
+output "vpc_cidr" {
+  description = "CIDR block of the VPC"
+  value       = aws_vpc.main.cidr_block
 }
+
+

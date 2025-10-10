@@ -6,7 +6,7 @@ on:
 env:
   TF_CLOUD_ORGANIZATION: "Fiap-arch"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
-  TF_WORKSPACE: "learn-terraform-github-actions"
+  TF_WORKSPACE: "infra-eks"
   CONFIG_DIRECTORY: "./"
 
 jobs:
