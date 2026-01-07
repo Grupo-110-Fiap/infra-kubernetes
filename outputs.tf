@@ -81,4 +81,14 @@ output "vpc_cidr" {
   value       = aws_vpc.main.cidr_block
 }
 
+output "order_upsert_sns_topic_arn" {
+  description = "ARN of the SNS topic for order upsert events"
+  value       = aws_sns_topic.order_upsert.arn
+}
+
+output "order_upsert_sns_topic_name" {
+  description = "Name of the SNS topic for order upsert events"
+  value       = aws_sns_topic.order_upsert.name
+}
+
 
