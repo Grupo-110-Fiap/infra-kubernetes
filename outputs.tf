@@ -90,5 +90,3 @@ output "order_upsert_sns_topic_name" {
   description = "Name of the SNS topic for order upsert events"
   value       = aws_sns_topic.order_upsert.name
 }
-
-
