@@ -47,16 +47,16 @@ output "node_groups" {
   value       = aws_eks_node_group.main.arn
 }
 
-# ECR Repository Outputs
-output "ecr_repository_url" {
-  description = "ECR repository URL"
-  value       = data.aws_ecr_repository.pedidos_api.repository_url
-}
-
-output "ecr_repository_arn" {
-  description = "ECR repository ARN"
-  value       = data.aws_ecr_repository.pedidos_api.arn
-}
+# ECR Repository Outputs (commented out - repository doesn't exist)
+# output "ecr_repository_url" {
+#   description = "ECR repository URL"
+#   value       = data.aws_ecr_repository.pedidos_api.repository_url
+# }
+# 
+# output "ecr_repository_arn" {
+#   description = "ECR repository ARN"
+#   value       = data.aws_ecr_repository.pedidos_api.arn
+# }
 
 
 
@@ -90,5 +90,3 @@ output "order_upsert_sns_topic_name" {
   description = "Name of the SNS topic for order upsert events"
   value       = aws_sns_topic.order_upsert.name
 }
-
-
