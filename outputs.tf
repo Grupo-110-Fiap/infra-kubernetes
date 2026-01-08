@@ -58,6 +58,16 @@ output "ecr_repository_arn" {
   value       = aws_ecr_repository.pedidos_api.arn
 }
 
+output "production_manager_repository_url" {
+  description = "Production Manager ECR repository URL"
+  value       = aws_ecr_repository.production_manager.repository_url
+}
+
+output "production_manager_repository_arn" {
+  description = "Production Manager ECR repository ARN"
+  value       = aws_ecr_repository.production_manager.arn
+}
+
 
 
 # VPC Outputs

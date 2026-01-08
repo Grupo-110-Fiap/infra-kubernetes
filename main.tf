@@ -259,6 +259,19 @@ resource "aws_ecr_repository" "pedidos_api" {
   }
 }
 
+resource "aws_ecr_repository" "production_manager" {
+  name                 = "techchallenge/production-manager"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "techchallenge/production-manager"
+  }
+}
+
 
 
 
