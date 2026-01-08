@@ -17,10 +17,12 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket = "terraform-kajgfkafvbajbfkagfskahgdfiahfkds"
-    key    = "techchallenge/terraform.tfstate"
-    region = "us-east-1"
+  cloud {
+    organization = "Fiap-arch"
+
+    workspaces {
+      name = "infra-eks"
+    }
   }
 }
 
