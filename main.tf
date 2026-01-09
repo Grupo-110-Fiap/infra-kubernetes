@@ -245,23 +245,47 @@ resource "aws_eks_node_group" "main" {
 }
 
 # ECR Repository (using existing repository)
-data "aws_ecr_repository" "pedidos_api" {
-  name = "techchallenge/pedidos-api"
-}
+# ECR Repository
+resource "aws_ecr_repository" "pedidos_api" {
+  name                 = "techchallenge/pedidos-api"
+  image_tag_mutability = "MUTABLE"
 
-# Kubernetes Namespace
-resource "kubernetes_namespace" "pedidos" {
-  metadata {
-    name = "pedidos"
-    
-    labels = {
-      name        = "pedidos"
-      environment = var.environment
-    }
+  image_scanning_configuration {
+    scan_on_push = true
   }
 
-  depends_on = [aws_eks_node_group.main]
+  tags = {
+    Name = "techchallenge/pedidos-api"
+  }
 }
+
+resource "aws_ecr_repository" "production_manager" {
+  name                 = "techchallenge/production-manager"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "techchallenge/production-manager"
+  }
+}
+
+resource "aws_ecr_repository" "payment_service" {
+  name                 = "techchallenge/payment-service"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "techchallenge/payment-service"
+  }
+}
+
+
 
 
 

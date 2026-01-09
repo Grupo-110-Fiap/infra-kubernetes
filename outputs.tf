@@ -50,12 +50,32 @@ output "node_groups" {
 # ECR Repository Outputs
 output "ecr_repository_url" {
   description = "ECR repository URL"
-  value       = data.aws_ecr_repository.pedidos_api.repository_url
+  value       = aws_ecr_repository.pedidos_api.repository_url
 }
 
 output "ecr_repository_arn" {
   description = "ECR repository ARN"
-  value       = data.aws_ecr_repository.pedidos_api.arn
+  value       = aws_ecr_repository.pedidos_api.arn
+}
+
+output "production_manager_repository_url" {
+  description = "Production Manager ECR repository URL"
+  value       = aws_ecr_repository.production_manager.repository_url
+}
+
+output "production_manager_repository_arn" {
+  description = "Production Manager ECR repository ARN"
+  value       = aws_ecr_repository.production_manager.arn
+}
+
+output "payment_service_repository_url" {
+  description = "Payment Service ECR repository URL"
+  value       = aws_ecr_repository.payment_service.repository_url
+}
+
+output "payment_service_repository_arn" {
+  description = "Payment Service ECR repository ARN"
+  value       = aws_ecr_repository.payment_service.arn
 }
 
 
@@ -81,4 +101,12 @@ output "vpc_cidr" {
   value       = aws_vpc.main.cidr_block
 }
 
+output "order_upsert_sns_topic_arn" {
+  description = "ARN of the SNS topic for order upsert events"
+  value       = aws_sns_topic.order_upsert.arn
+}
 
+output "order_upsert_sns_topic_name" {
+  description = "Name of the SNS topic for order upsert events"
+  value       = aws_sns_topic.order_upsert.name
+}
