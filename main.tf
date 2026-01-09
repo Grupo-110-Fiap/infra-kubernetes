@@ -272,6 +272,19 @@ resource "aws_ecr_repository" "production_manager" {
   }
 }
 
+resource "aws_ecr_repository" "payment_service" {
+  name                 = "techchallenge/payment-service"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "techchallenge/payment-service"
+  }
+}
+
 
 
 

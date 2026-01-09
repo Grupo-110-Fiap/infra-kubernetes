@@ -68,6 +68,16 @@ output "production_manager_repository_arn" {
   value       = aws_ecr_repository.production_manager.arn
 }
 
+output "payment_service_repository_url" {
+  description = "Payment Service ECR repository URL"
+  value       = aws_ecr_repository.payment_service.repository_url
+}
+
+output "payment_service_repository_arn" {
+  description = "Payment Service ECR repository ARN"
+  value       = aws_ecr_repository.payment_service.arn
+}
+
 
 
 # VPC Outputs
