@@ -5,3 +5,7 @@ metadata:
   labels:
     name: pedidos
     environment: production
+  name: production-manager-svc
+  labels:
+    name: production-manager
+    environment: production
